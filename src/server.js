@@ -9,14 +9,14 @@ const productsRoutes = require("./routes/productsRoutes");
 // load variables de entorno
 dotenv.config();
 
-// conectar base ded datos
+// conectar a la base de datos
 connectDB();
 
 // start app
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// middleware json
+// middleware JSON
 app.use(express.json());
 
 // config sesiones
@@ -28,17 +28,17 @@ app.use(
   })
 );
 
-// passport
+// config passport
 require("./config/passport");
 app.use(passport.initialize());
 app.use(passport.session());
 
-// routes
+// rutas
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productsRoutes);
 
 // ruta principal
-app.get("/", (req, res) => res.send("Servidor funcionando..."));
+app.get("/", (req, res) => res.send(" Servidor funcionando correctamente..."));
 
 // start server
-app.listen(PORT, () => console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`));
+app.listen(PORT, () => console.log(` Servidor corriendo en http://localhost:${PORT}`));
