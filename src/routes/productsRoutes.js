@@ -1,10 +1,24 @@
 const express = require("express");
 const Product = require("../models/Product");
-const authMiddleware = require("../middlewares/authMiddleware");
-const roleMiddleware = require("../middlewares/roleMiddleware");
 const router = express.Router();
 
-// obtener productos (usuarios autenticados)
+// middleware login
+const authMiddleware = (req, res, next) => {
+    if (!req.isAuthenticated()) {
+        return res.status(403).json({ message: "Acceso denegado. No hay sesión activa" });
+    }
+    next();
+};
+
+// middleware para roles
+const roleMiddleware = (roles) => (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+        return res.status(403).json({ message: "Acceso denegado. Permisos insuficientes" });
+    }
+    next();
+};
+
+// get productos
 router.get("/", authMiddleware, async (req, res) => {
     try {
         const products = await Product.find();
@@ -18,7 +32,7 @@ router.get("/", authMiddleware, async (req, res) => {
     }
 });
 
-// crear un nuevo producto (solo admin)
+// neuvo productos (solo admin)
 router.post("/", authMiddleware, roleMiddleware(["admin"]), async (req, res) => {
     try {
         const { name, price } = req.body;
@@ -31,3 +45,4 @@ router.post("/", authMiddleware, roleMiddleware(["admin"]), async (req, res) => 
 });
 
 module.exports = router;
+

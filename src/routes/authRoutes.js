@@ -1,7 +1,6 @@
 const express = require("express");
 const passport = require("passport");
 const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
 const router = express.Router();
@@ -11,13 +10,13 @@ const asyncHandler = (fn) => (req, res, next) => {
   Promise.resolve(fn(req, res, next)).catch(next);
 };
 
-// registro passport
+// registro con passport
 router.post(
   "/register",
   asyncHandler(async (req, res) => {
     const { firstName, lastName, email, password } = req.body;
 
-    // verificar si el user ya existe
+    // verif si el usuario ya existe
     const userExists = await User.findOne({ email });
     if (userExists) return res.status(400).json({ message: "El usuario ya existe" });
 
@@ -25,7 +24,7 @@ router.post(
     const hashedPassword = await bcrypt.hash(password, 10);
     const role = email === "adminCoder@coder.com" ? "admin" : "usuario";
 
-    // crear y guardar usuario
+    // crear y guardar el usuario
     const newUser = new User({ firstName, lastName, email, password: hashedPassword, role });
     await newUser.save();
 
@@ -33,35 +32,33 @@ router.post(
   })
 );
 
-// login con passport
+// login con passport y sesiones
 router.post(
   "/login",
-  passport.authenticate("login", { session: false }),
+  passport.authenticate("login"),
   (req, res) => {
-    const user = req.user;
-    const token = jwt.sign(
-      { id: user._id, email: user.email, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: "1h" }
-    );
-    res.json({ message: "Login exitoso", token, user });
+    res.json({ message: "Login exitoso", user: req.user });
   }
 );
+
+// logout
+router.get("/logout", (req, res) => {
+  req.logout((err) => {
+    if (err) {
+      return res.status(500).json({ message: "Error al cerrar sesión" });
+    }
+    res.json({ message: "Logout exitoso" });
+  });
+});
 
 // autenticacion con github
 router.get("/github", passport.authenticate("github", { scope: ["user:email"] }));
 
 router.get(
   "/github/callback",
-  passport.authenticate("github", { session: false, failureRedirect: "/login" }),
+  passport.authenticate("github", { failureRedirect: "/login" }),
   (req, res) => {
-    const user = req.user;
-    const token = jwt.sign(
-      { id: user._id, email: user.email, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: "1h" }
-    );
-    res.redirect(`/api/products?token=${token}`);
+    res.redirect("/api/products");
   }
 );
 
