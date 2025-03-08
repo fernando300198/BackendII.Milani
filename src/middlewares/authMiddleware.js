@@ -1,19 +1,17 @@
 const jwt = require("jsonwebtoken");
 
 const authMiddleware = (req, res, next) => {
-  const token = req.header("Authorization");
-  
-  if (!token) {
-    return res.status(403).json({ message: "Acceso denegado. No hay token" });
-  }
+    const token = req.signedCookies.currentUser;
+    if (!token) return res.redirect("/users/login");
 
-  try {
-    const decoded = jwt.verify(token.replace("Bearer ", ""), process.env.JWT_SECRET);
-    req.user = decoded; 
-    next();
-  } catch (error) {
-    res.status(401).json({ message: "Token inválido" });
-  }
+    try {
+        const decoded = jwt.verify(token, "secretKey");
+        req.user = decoded;
+        next();
+    } catch (error) {
+        res.clearCookie("currentUser");
+        return res.redirect("/users/login");
+    }
 };
 
 module.exports = authMiddleware;
