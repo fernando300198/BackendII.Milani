@@ -8,7 +8,7 @@ const exphbs = require("express-handlebars");
 const authRoutes = require("./routes/authRoutes");
 const productsRoutes = require("./routes/productsRoutes");
 
-// cargar variables de entorno
+// load variables de entorno
 dotenv.config();
 
 // conectar base de datos
@@ -18,11 +18,11 @@ connectDB();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// middleware json y url encoded
+// middleware json & url encoded
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Config de sesiones
+// config de sesiones
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "secreto",
@@ -31,25 +31,25 @@ app.use(
   })
 );
 
-// config de cookies firmadas para jwt
+// config cookies jwt
 app.use(cookieParser(process.env.COOKIE_SECRET || "cookieSecreta"));
 
-// passport config
+// config passport
 require("./config/passport");
 app.use(passport.initialize());
 app.use(passport.session());
 
-// handlebars config
+// config handlebars
 app.engine("handlebars", exphbs.engine());
 app.set("view engine", "handlebars");
-app.set("views", "./views");
+app.set("views", "./src/views");
 
 // rutas
-app.use("/api/users", authRoutes); // Cambié "/api/auth" a "/api/users" por la consigna
+app.use("/api/users", authRoutes);
 app.use("/api/products", productsRoutes);
 
 // ruta principal
 app.get("/", (req, res) => res.send("Servidor funcionando correctamente..."));
 
-// start server
+// iniciar servidor
 app.listen(PORT, () => console.log(`Servidor corriendo en http://localhost:${PORT}`));

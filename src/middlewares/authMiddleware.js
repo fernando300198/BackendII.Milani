@@ -2,7 +2,11 @@ const jwt = require("jsonwebtoken");
 
 const authMiddleware = (req, res, next) => {
     const token = req.signedCookies.currentUser;
-    if (!token) return res.redirect("/users/login");
+    if (!token) {
+        return req.originalUrl.startsWith("/api/")
+            ? res.status(401).json({ message: "Acceso denegado. No hay token." })
+            : res.redirect("/users/login");
+    }
 
     try {
         const decoded = jwt.verify(token, "secretKey");
@@ -10,7 +14,10 @@ const authMiddleware = (req, res, next) => {
         next();
     } catch (error) {
         res.clearCookie("currentUser");
-        return res.redirect("/users/login");
+
+        return req.originalUrl.startsWith("/api/")
+            ? res.status(401).json({ message: "Token inválido o expirado." })
+            : res.redirect("/users/login");
     }
 };
 
